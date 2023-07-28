@@ -1,0 +1,77 @@
+version: '3.7'
+
+services:
+  gateway:
+    build:
+      context: gateway
+      target: development
+    networks:
+      - backend
+    command: npm run start:dev
+    restart: always
+    env_file: .env
+    ports:
+      - '3050:3050'
+    volumes:
+      - ./gateway/:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - auth
+      - todo
+
+  auth:
+    build:
+      context: auth
+      target: development
+    networks:
+      - backend
+    command: npm run start:dev
+    restart: always
+    env_file: .env
+    volumes:
+      - ./auth/:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongo
+      - redis
+
+  todo:
+    build:
+      context: todo
+      target: development
+    networks:
+      - backend
+    command: npm run start:dev
+    restart: always
+    env_file: .env
+    volumes:
+      - ./todo/:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongo
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+
+  mongo:
+    image: mongo
+    restart: always
+    networks:
+      - backend
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+networks:
+  backend:
+
+volumes:
+  mongo_data:
+  redis_data:
